@@ -28,6 +28,7 @@ function Extension() {
   const [allDelivered, setAllDelivered] = useState(true);
   const [timeLimit, setTimeLimit] = useState(false);
   const [useCode, setUseCode] = useState(false);
+  const [hasNextPage, setHasNextPage] = useState(false);
   // const [utcDate, setUtcDate] = useState("");
   const getCustomerNameQuery = {
     query: `query {
@@ -43,6 +44,9 @@ function Extension() {
                 }
               }
             }lineItems(first:250){
+              pageInfo{
+                hasNextPage
+              }
               edges{
                 node{
                   id
@@ -61,7 +65,7 @@ function Extension() {
                             happenedAt
                           }
                         }
-                        fulfillmentLineItems(first:50){
+                        fulfillmentLineItems(first:250){
                           edges{
                             node{
                               id
@@ -95,22 +99,28 @@ function Extension() {
       .then((data) => {
         //将所有的code记录在codes中
         console.log(data);
+        if(data.data.order.lineItems.pageInfo.hasNextPage){
+          console.log("set hasNextPage true");
+          setHasNextPage(true);
+        }
         data.data.order.discountApplications.edges.forEach((element) => {
           setCodes(codes => [...codes, element.node.code]);
-          if (element.node.code && element.node.code.startsWith("AS-")) {
+          if (element.node.code && element.node.code.startsWith("AS-")&& element.node.code.startsWith("as-")) {
             console.log("setsuecode true");
             setUseCode(true);
           }
         });
         //将所有的lineItems记录在lineItems中
-        data.data.order.lineItems.edges.forEach((element) => {
-          setlineItems(lineItems => [...lineItems, element.node]);
-        });
+        // data.data.order.lineItems.edges.forEach((element) => {
+        //   setlineItems(lineItems => [...lineItems, element.node]);
+        // });
+        setlineItems(data.data.order.lineItems.edges);
         //将所有的fulfillments记录在fulfillments中
         var flag;
         let maxTime = 0;
+        setFulfillments(data.data.order.fulfillments.edges);
         data.data.order.fulfillments.edges.forEach((element) => {
-          setFulfillments(fulfillments => [...fulfillments, element.node]);
+          //setFulfillments(fulfillments => [...fulfillments, element.node]);
           flag = false;
           let events = element.node.events.nodes;
           for (let j = 0; j < events.length; j++) {
@@ -327,7 +337,8 @@ function Extension() {
   //   }
   // }
 
-  if (lineItems.length > 40) {
+  if (hasNextPage) {
+    console.log("hasNextPage!");
     return (
       <BlockStack backgroud='subdued'>
         <Button
@@ -360,7 +371,7 @@ function Extension() {
               padding
             >
               <TextBlock>
-                This order use sc code and cann't apply for a self-service return. If you have any questions, please <Link to='mailto:service@thecommense.com'>contact us</Link>.
+              Self-service returns cannot be used on orders using store credit. If you have any questions, please <Link to='mailto:service@thecommense.com'>contact us</Link>.
               </TextBlock>
             </Modal>
           }
@@ -388,7 +399,7 @@ function Extension() {
               padding
             >
               <TextBlock>
-                Products was not completely delivered. recommend to wait until fully delivered and reqeust return. If you have any questions, please <Link to='mailto:service@thecommense.com'>contact us</Link>.
+              Some of the items in this order have not been delivered yet. We recommend that you submit your return request after you have received all the items in the order. If you have any questions, please <Link to='mailto:service@thecommense.com'>contact us</Link>.
               </TextBlock>
             </Modal>
           }
