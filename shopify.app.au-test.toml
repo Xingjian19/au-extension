@@ -1,0 +1,23 @@
+# Learn more about configuring your app at https://shopify.dev/docs/apps/tools/cli/configuration
+
+client_id = "8e3e118bb15d4b62a002c4e30be17546"
+name = "au-test"
+handle = "au-test"
+application_url = "https://shopify.dev/apps/default-app-home"
+embedded = true
+
+[build]
+include_config_on_deploy = true
+
+[access_scopes]
+# Learn more at https://shopify.dev/docs/apps/tools/cli/configuration#access_scopes
+scopes = "customer_read_orders,write_products"
+
+[auth]
+redirect_urls = [ "https://shopify.dev/apps/default-app-home/api/auth" ]
+
+[webhooks]
+api_version = "2024-07"
+
+[pos]
+embedded = false
